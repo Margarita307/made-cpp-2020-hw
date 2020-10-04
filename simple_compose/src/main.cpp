@@ -5,8 +5,19 @@ typedef std::function<int (int)> Op;
 
 
 
-Op compose (size_t n, Op ops[]) {
-    /// Your code goes here.
+Op compose(size_t n, Op ops[]) {
+	if (n == 0)
+		return [](int x) { return x; };
+	auto make_composition = [](Op op, Op prev_comp)
+	{
+		return [op, prev_comp](int x) { return op(prev_comp(x)); };
+	};
+	auto comp = ops[n - 1];
+	for (size_t i = 0; i < n - 1; ++i)
+	{
+		comp = make_composition(ops[n - 2 - i], comp);
+	}
+	return comp;
 }
 
 
