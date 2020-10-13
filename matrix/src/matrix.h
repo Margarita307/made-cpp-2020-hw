@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <iostream>
 
 
@@ -27,8 +26,8 @@ namespace task {
 		void set(size_t row, size_t col, const double& value);
 		void resize(size_t new_rows, size_t new_cols);
 
-		std::vector<double>& operator[](size_t row);
-		const std::vector<double>& operator[](size_t row) const;
+		double* operator[](size_t row);
+		const double* operator[](size_t row) const;
 
 		Matrix& operator+=(const Matrix& a);
 		Matrix& operator-=(const Matrix& a);
@@ -48,8 +47,8 @@ namespace task {
 		Matrix transposed() const;
 		double trace() const;
 
-		std::vector<double> getRow(size_t row);
-		std::vector<double> getColumn(size_t column);
+		double* getRow(size_t row);
+		double* getColumn(size_t column);
 
 		bool operator==(const Matrix& a) const;
 		bool operator!=(const Matrix& a) const;
@@ -57,8 +56,7 @@ namespace task {
 		size_t rowsCount;
 		size_t columnsCount;
 	private:
-		std::vector<std::vector<double>> rows;
-
+		double** matrix;
 	};
 
 
