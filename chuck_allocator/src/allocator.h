@@ -3,8 +3,6 @@
 #include <new>
 #include <iostream>
 
-// TODO Tabulation
-
 namespace task {
 
     const size_t CHUNK_SIZE = 8;
