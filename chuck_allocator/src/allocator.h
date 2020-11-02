@@ -12,7 +12,7 @@ namespace task {
             bytes = new char[CHUNK_SIZE];
             start = bytes;
         }
-        Chunk* prev = nullptr;
+        Chunk* next = nullptr;
         char* bytes;
         char* start;
         ~Chunk() {
@@ -44,7 +44,7 @@ namespace task {
             }
             num_of_allocators = other.num_of_allocators;
             ++(*num_of_allocators);
-            last_chunk = other.last_chunk;
+            first_chunk = other.first_chunk;
         }
 
         ~Allocator() {
@@ -58,7 +58,7 @@ namespace task {
             }
             num_of_allocators = other.num_of_allocators;
             ++(*num_of_allocators);
-            last_chunk = other.last_chunk;
+            first_chunk = other.first_chunk;
             return *this;
         }
 
@@ -67,14 +67,18 @@ namespace task {
             if (requested_bytes > CHUNK_SIZE)
                 return nullptr;
 
-            Chunk* chunk = (*last_chunk);
+            Chunk* chunk = (*first_chunk);
+            Chunk* prev = nullptr;
             while (chunk != nullptr && static_cast<size_t>(chunk->bytes + CHUNK_SIZE - chunk->start) < requested_bytes) {
-                chunk = chunk->prev;
+                prev = chunk;
+                chunk = chunk->next;
             }
             if (chunk == nullptr) {
                 chunk = new Chunk;
-                chunk->prev = (*last_chunk);
-                (*last_chunk) = chunk;
+                if (prev == nullptr)
+                    (*first_chunk) = chunk;
+                else
+                    prev->next = (*chunk);
             }
             char* res = chunk->start;
             chunk->start += requested_bytes;
@@ -87,7 +91,7 @@ namespace task {
 
         template<class ... Args>
         void construct(T* p, Args&&... args) {
-            new(p) T(args...);
+            new(p) T(std::forward<Args>(args)...);
         }
 
         void destroy(pointer p) {
@@ -96,15 +100,15 @@ namespace task {
 
     private:
         // Store pointer to the pointer so that allocators originated as copies of each other
-        // have the same pointer to last chunk, so that any of them could destroy all chunks
-        Chunk** last_chunk = new Chunk* { nullptr };
+        // have the same pointer to the first chunk, so that any of them could destroy all chunks
+        Chunk** first_chunk = new Chunk* { nullptr };
         size_t* num_of_allocators = new size_t{ 1 };
 
         void destroy_chunks() {
-            Chunk* chunk = (*last_chunk);
+            Chunk* chunk = (*first_chunk);
             Chunk* temp;
             while (chunk != nullptr) {
-                temp = chunk->prev;
+                temp = chunk->next;
                 delete chunk;
                 chunk = temp;
             }
